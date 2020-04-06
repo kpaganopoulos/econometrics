@@ -1,0 +1,226 @@
+---
+title: "Problem Set 4"
+author: "Konstantinos Paganopoulos"
+date: "25 November 2019"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+subtitle: Statistics and Econometrics
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE)
+library(ggplot2)
+library(car)
+library(dplyr)
+library(stargazer)
+library(lmtest)
+library(leaps)
+```
+
+## Question 1
+>
+Use the data set nbasal.RData to answer this question. A regression model is needed to study the factors that influence salaries of NBA players. We use $log(wage)$ as the dependent variable. Potential factors that will affect a player's wage include experience ($exper$, $coll$), games' participation ($games$, $avgmin$), position ($forward$, $center$, $guard$), performance ($points$, $rebounds$, $assists$), prestige ($draft$, $allstar$), and demographic factors ($black$, $children$, $marr$). For this question, it is fine if you only consider these variables in the level form.
+>
+1. Identify if there is any multicollinearity problem.
+
+We first load the dataset.
+```{r, results = 'asis'}
+load("nbasal.RData")
+desc
+```
+
+We rename the data frame with a more informative name.
+```{r}
+nbasal.data <- data
+```
+
+We estimate the following regression model.
+```{r}
+lwage.m1 <- lm(log(wage) ~ exper + coll + games + avgmin + forward + center + guard + points + rebounds + assists + draft + allstar + black + children + marr , data = nbasal.data)
+summary(lwage.m1)
+```
+
+```{r, results='asis'}
+stargazer(lwage.m1, type = "html")
+```
+
+<br>
+
+We exclude one of the dummy variables of the above model (we randomly select $guard$) and we have the following model:
+```{r}
+lwage.mod <- lm(log(wage) ~ exper + coll + games + avgmin + forward + center + points + rebounds + assists + draft + allstar + black + children + marr , data = nbasal.data)
+summary(lwage.mod)
+```
+
+```{r, results='asis'}
+stargazer(lwage.mod, type = "html")
+```
+
+<br>
+
+We now calculate the $VIF$ for the above model:
+```{r}
+vif(lwage.mod)
+```
+From the above results we see that the only variable that has a $VIF$ greater than 10 is $avgmin$. 
+
+As a result, there is a multicollinearity problem for the $avgmin$ variable.
+
+>
+2. Find the model(s) with the lowest AIC by using forward and backward-stepwise selections.
+
+We first omit the N/A values from the data set.
+```{r}
+data.new <- na.omit(nbasal.data)
+```
+
+We then try to find the model with the lowest AIC using forward and backward-stepwise selections.
+```{r}
+lwage2.null <- lm(log(wage) ~ 1, data.new)
+lwage2.full <- lm(log(wage) ~ exper + coll + games + avgmin + forward + center + guard + points + rebounds + assists + draft + allstar + black + children + marr, data.new)
+step(lwage2.null, scope = list(lower = lwage2.null, upper = lwage2.full),
+direction = "forward")
+```
+
+Hence the model with the lowest AIC using the forward selection is the: 
+<br>
+$log(wage)$ ~ $avgmin$ $+$ $exper$ $+$ $draft$ $+$ $points$ $+$ $guard$ $+$ $allstar$ with $AIC = -264.69$.
+
+```{r}
+step(lwage2.full, direction = "backward")
+```
+
+Hence the model with the lowest AIC using the backward-stepwise selection is the: 
+<br>
+$log(wage)$ ~ $exper$ $+$ $avgmin$ $+$ $points$ $+$ $draft$ $+$ $allstar$ with $AIC = -263.57$.
+
+From the above results we can conclude that the model with the lowest AIC value is the following:
+<br>
+$log(wage)$ ~ $avgmin$ $+$ $exper$ $+$ $draft$ $+$ $points$ $+$ $guard$ $+$ $allstar$ with $AIC = -264.69$.
+
+>
+3. Plot residuals against fitted values of model(s) from part 2. Is the residual plot satisfactory? Comment.
+
+We plot the reiduals against fitted values of the best moded (that one with lowest $AIC$ values) of Question 1.2:
+```{r}
+bestmodel <- lm(log(wage) ~ avgmin + exper + draft + points + guard + allstar, data = nbasal.data) 
+
+ggplot(bestmodel, aes(.fitted, .stdresid)) + geom_point() + stat_smooth(method = "loess") + xlab("Fitted Value") + ylab("Standardized Residuals")
+```
+
+Using the rule of thumb, an observation is considered as an outlier if
+it lies 3 standard deviations away from the mean (here equals zero). Judging from the plot, we have three outliers in this example, just below 3 standard deviations from the mean. As a result, the residual plot is in general satisfactory.
+
+>
+4. Repeat part 2 without $avgmin$. Comment on the differences.
+
+We try again to find the model with the lowest AIC using forward and backward-stepwise selections, but this time we do not include the variable $avgmin$ in our model.
+
+```{r}
+lwage3.null <- lm(log(wage) ~ 1, data.new)
+lwage3.full <- lm(log(wage) ~ exper + coll + games + forward + center + guard + points + rebounds + assists + draft + allstar + black + children + marr, data.new)
+step(lwage3.null, scope = list(lower = lwage3.null, upper = lwage3.full),
+direction = "forward")
+```
+
+Hence the model with the lowest AIC using the forward selection is the: 
+<br>
+$log(wage)$ ~ $points$ $+$ $exper$ $+$ $draft$ $+$ $allstar$ $+$ $rebounds$ $+$ $assists$ with $AIC = -262.06$.
+
+```{r}
+step(lwage3.full, direction = "backward")
+```
+
+Hence the model with the lowest AIC using the backward-stepwise selection is the: 
+<br>
+$log(wage)$ ~ $exper$ $+$ $forward$ $+$ $center$ $+$ $points$ $+$ $assists$ $+$ $draft$ $+$ $allstar$ $+$ $black$ with $AIC = -260.72$.
+
+From the above results we can conclude that the model with the lowest AIC value is the following:
+<br>
+$log(wage)$ ~ $points + exper + draft + allstar + rebounds + assists$
+with $AIC = -262.06$.
+<br>
+
+The model that now has the lowest AIC value, includes the variables $assists$ and $rebounds$ and excludes (despite $avgmin$) those of $allstar$ and $guard$.
+
+As a result, we can conclude that running the models without $avgmin$ resulted in a slightly higher AIC value, hence in a worst model. We can also say that despite $avgmin$ variables $allstar$ and $guard$ are probably more important for our model, in comparison with those of $assists$ and $rebounds$ .
+
+## Question 2
+>
+Use the data set meap93.RData to answer this question. Let $math10$ denote the percentage of students at a Michigan high school receiving a passing score on a standardized math test. We are interested in estimating the effect of per student spending ($expend$) on math performance. A simple model is $$math10=\beta_0+\beta_1\log(expend)+\beta_2\log(enroll)+\beta_3 lnchprg + u,$$ where the school size is measured by student enrollment ($enroll$), and $lnchprg$ is the percentage of students eligible for the federally funded school lunch program.
+
+>
+1. Estimate the model with and without the variable $lnchprg$ (The model without $lnchprg$ is referred to as model 1 and the model with $lnchprg$ is referred to as model 2). Explain why the effect of expenditures on $math10$ is lower in model 2 than in model 1.
+
+We are going to estimate the following model:
+
+$math10 = \beta_0 + \beta_1 log(expend) + \beta_2 log(enroll) + \beta_3lnchprg + u,$
+
+where the school size is measured by student enrollment ($enroll$), and lnchprg is the percentage of students eligible for the federally funded school lunch program.
+
+We first load the dataset.
+```{r, results = 'asis'}
+load("meap93.RData")
+desc
+```
+
+We rename the data frame with a more informative name.
+```{r}
+meap93.data <- data
+```
+
+We estimate the following regression model.
+```{r}
+math.m2 <- lm(math10 ~ log(expend) + log(enroll) + lnchprg, data = meap93.data)
+summary(math.m2)
+```
+```{r, results='asis'}
+stargazer(math.m2 , type = "html")
+```
+
+<br>
+
+We now estimate the following regression model.
+```{r}
+math.m1 <- lm(math10 ~ log(expend) + log(enroll), data = meap93.data)
+summary(math.m1)
+```
+```{r, results='asis'}
+stargazer(math.m1 , type = "html")
+```
+
+<br>
+
+From the above we can conclude that the effect of $expenditures$
+on $math10$ is lower in model 2 than in model 1, because the coefficient $\beta_1$ of $log(expend)$ in model 2 is $7.74606$ whereas that of model 1 is $11.1318$.  
+
+If we try to interpret why $\beta_1$ has those two values, we could say that $log(expend)$ and $lnchprg$ are negatively correlated. From the above results we could also say that $\beta_3$ is also negative. As a result, the estimate in model 1 is upward biased.
+
+>
+2. Does it appear that pass rates are lower at larger schools, other factors being equal? Explain.
+
+In order to explain if the pass rates are lower at larger schools, other factors being equal we will examine the outcome of Question 2.1 and in particularly from that of model 2. 
+
+By adding the variable $lnchprg$ to our model (model2), the coefficient of $log(enroll)$ becomes negative and has a significant t-statistic at the 0.05 level of a two-sided alternative.
+
+We know that school size is measured by student enrollment ($enroll$), so
+by examining the coefficients of model 2 we can see that $log(enroll)$ has a coefficient of $-1.25544$ which is approximately equal to $-1.26$.
+
+In other words, 1 unit increase in enrollment results in a $0.0126$ decrease in the percentage of students at a Michigan high school receiving a passing score on a standardized math test.
+
+As a result, pass rates are lower at larger schools, other factors being equal.
+
+>
+3. Interpret the coefficient on $lnchprg$ in model 2.
+
+The coefficient on $lnchprg$ in model 2 is equal to $-0.32393$ which is approximately equal to $-0.324$. The meaning of the above coefficient is that for one unit increase in $lnchprg$, the percentage of students at a
+Michigan high school receiving a passing score on a standardized math test will be decreased by $0.324\%$.
+
+>
+4. What do you make of the substantial increase in $R^2$ from model 1 to model 2?
+
+We know that R-squared $(R^2)$ is a statistical measure that represents the proportion of the variance for a dependent variable that's explained by an independent variable or variables in a regression model. 
+
+From the above we can see that $R^2$ in model 1 is equal to $0.030$ whereas in model 2 equal to $0.189$. In other words, in the first model we explain very little of the variation in pass rates on the standardised math test, whereas in the second one, we explain a lot more. That is a very large increase, that has (to some extent) to do with the use of $lnchprg$ variable in the second model. That variable shows the percentage of students eligible for the federally funded school lunch program, so we could say that it is something expected for students with higher annual family income, to have a better school performance than those with a significantly lower one.
