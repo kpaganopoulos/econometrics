@@ -1,0 +1,288 @@
+---
+title: "Problem Set 5"
+author: "Konstantinos Paganopoulos"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+date: '2 December 2019'
+subtitle: Statistics and Econometrics
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE)
+library(ggplot2)
+library(car)
+library(dplyr)
+library(stargazer)
+library(lmtest)
+library(caret)
+library(lattice)
+library(sandwich)
+library(plm)
+```
+
+## Question 1
+>
+Use the data in pntsprd.RData for this exercise.
+>
+1. The variable $favwin$ is a binary variable indicating whether the team favored by the Las Vegas point spread wins (If you are not familiar with spread betting, here is an explanation: https://en.wikipedia.org/wiki/Spread_betting). A linear probability model to estimate the probability that the favored team wins is $$P(favwin=1|spread)=\beta_0+\beta_1 spread.$$ Explain why, if the spread incorporates all relevant information, we expect $\beta_0=.5$.
+
+By reading the explanation at the provided url (https://en.wikipedia.org/wiki/Spread_betting) we see that "because the spread is intended to create an equal number of wagers on either side, the implied probability is 50% for both sides of the wager".
+
+Hence, if we have that $spread$ equals 0, then neither of the two teams is favoured. As a result, the probability that any one team wins will be equal to 0.5. 
+
+In other words $\beta_0=.5$ if the spread incorporates all relevant information.
+
+If we want to give a more detailed explanation based on the provided url, we see that in every game we have an underdog and a favourite and that the spread is the difference between those two. For example, if the underdog is 4 points worser than the favourite, then spread equals 4. Our goal is to find the probability of winning the game. If the spread incorporates all relevant information then the probability is equally splitted (1/2). As a consequence, $\beta_0=.5$.
+
+>
+2. Estimate the model from part 1 by OLS. Test $H_0: \beta_0=.5$ against a two-sided alternative. Use both the usual and heteroskedasticity-robust standard errors.
+
+We first load the dataset.
+```{r, results = 'asis'}
+load("pntsprd.RData")
+desc
+```
+
+We rename the data frame with a more informative name.
+```{r}
+pntsprd.data <- data
+```
+
+We estimate the following regression model.
+```{r}
+lfavwin.m1 <- lm(favwin ~ spread, data = pntsprd.data)
+summary(lfavwin.m1)
+```
+
+```{r, results='asis'}
+stargazer(lfavwin.m1, type = "html")
+```
+<br>
+
+We calculate the t-statistic for the above model (using the usual standard error) as follows:
+
+$t=(0.5769 - 0.5)/0.0282 = 2.7269 ≅ 2.73$
+
+We calculate the critical value for a two sided t test at the lowest possible sign level of the common ones in which we can reject the null (here 0.01):
+```{r}
+-qt(0.005,551)
+```
+
+As a result, 2.73 > 2.59 hence, we reject the null hypothesis using the usual standard error.
+
+Now we follow the same procedure, but we use the heteroskedasticity-robust standard errors.
+
+We calculate robust variance and covariance matrix.
+```{r}
+vcov.robust <- vcovHC(lfavwin.m1, "HC1")
+```
+
+Perform the t test:
+```{r}
+coeftest(lfavwin.m1, vcov = vcov.robust)
+```
+
+```{r, results='asis'}
+stargazer(lfavwin.m1, type = "html")
+```
+
+<br>
+
+As we can calculate from the above results:
+
+$t=(0.5769 - 0.5)/0.0316 = 2.43354 ≅ 2.44$
+
+We calculate the critical value for a two sided t test at the lowest possible sign level of the common ones in which we can reject the null (here 0.02):
+
+```{r}
+-qt(0.01,551)
+```
+
+As a result, 2.44 > 2.33 hence, we reject the null hypothesis using the heteroskedasticity-robust standard errors.
+
+>
+3. Now, estimate a probit model for $P( favwin=1|spread)$. Interpret and test the null hypothesis that the intercept is zero. [$Hint$: Remember that $\Phi(0)=.5$.]
+
+First of all we form the following null and alternative hypothesis at 5% significance level:
+
+$H_0: \beta_0=0$
+<br>
+$H_1: \beta_0\neq0$
+
+We now run a probit model for $P( favwin=1|spread)$ as follows:
+```{r}
+inlf.probit <- glm(favwin ~ spread, family = "binomial"(link = "probit"), data = pntsprd.data)
+summary(inlf.probit)
+```
+
+```{r, results='asis'}
+stargazer(inlf.probit, type = "html")
+```
+
+<br>
+
+From the above results we can see that the z-test value equals -0.102.
+
+As a result, we cannot reject the null hypothesis that the intercept is equal to zero, due to the very low $|z|$ value.
+
+Using p-value we could say that p-value equals 0.918, which is greater than 0.05, so again we fail to reject the null hypothesis.
+
+Therefore, there is no significanct difference $\beta_0$ from 0 at a 0.05 significance level.
+
+We can also point out the similarity Question 1.2 (testing $H_0: \beta_0=.5$ against a two-sided alternative for the linear model).
+
+>
+4. Use the probit model to estimate the probability that the favored team wins when $spread=10$. Compare this with the LPM estimate from part 2.
+
+From the previous sub questions, we can see that $\beta_0 = 0.5769$ and $\beta_1 = 0.01936$.
+
+In other words, we can formulate the linear model as follows:
+
+$P(favwin=1|spread)=0.5769+0.01936spread$ 
+<br>
+where $n=533, R^2 = 0.111, Adjusted \: R^2 = 0.109$
+
+As a result, the estimated probability that the favored team wins when spread = 10 using the LPM model is equal to:
+
+$P(favwin=1|spread)=0.5769+0.01936*10 = 0.5769+0.1936=0.7705$
+
+Now we have to follow the same procedure, however using the probit model, which looks like the following:
+
+$P(favwin=1|spread)=\Phi(-0.01059+0.09246spread)$
+
+We know that the probit model uses the standard normal cumulative distribution function.
+
+As a result, the estimated probability that the favored team wins when spread = 10 using the probit model is equal to:
+
+$P(favwin=1|spread)=\Phi(-0.01059+0.09246*10)=\Phi(-0.01059+0.9246)=\Phi(0.91401)$
+
+We calculate the probabily as follows:
+```{r}
+pnorm(0.91401)
+```
+
+Hence, the estimated probability that the favored team wins when spread = 10 using the probit model is equal to $0.8196442$, which is a little higher than the one from the LPM.
+
+>
+5. Add the variables $favhome$, $fav25$, and $und25$ to the probit model and test joint significance of these variables using the likelihood ratio test. (How many df are in the chi-square distribution?) Interpret this result, focusing on the question of whether the spread incorporates all observable information prior to a game.
+
+By adding the variables $favhome$, $fav25$, and $und25$, we have the following probit model:
+
+$P(favwin=1|spread)=\phi(\beta_0+\beta_1spread+\beta_2favhome+\beta_3fav25+\beta_4und25)$
+
+We now estimate the following probit model:
+```{r}
+inlf2.probit <- glm(favwin ~ spread + favhome + fav25 + und25, family = "binomial"(link = "probit"), data = pntsprd.data)
+```
+We form the following null and alternative hypothesis: $H_0: \beta_2=0, \beta_3=0, \beta_4=0$ and $H_1: \beta_2\neq0, \beta_3\neq0, \beta_4\neq0$
+
+In other words, we form the null hypothesis that the three new variables are not joint significant and the alternative that they are.
+
+We know that the log-likelihood for the restricted model is the folowing:
+```{r}
+lliklihood_r <- logLik(inlf.probit)
+lliklihood_r
+```
+And the log-likelihood for the unrestricted model is the following:
+```{r}
+lliklihood_ur <- logLik(inlf2.probit)
+lliklihood_ur
+```
+Hence we have that the log-likelihood of our unrestricted model equals ($L_{ur}$) $=-262.6418$ and the log-likelihood of our restricted model equals ($L_r$) $=-263.5622$.
+
+We also know that the log likelihood ratio ($LR$) $=2(L_{ur}-L_r)$.
+
+As a result, the above ratio could be written as follows:
+
+$LR$ $= 2(-262.6418+263.5622)=1.8408$ 
+
+We now calculate the critical value for a chi-square distribution with degree of freedom equal to 3:
+```{r}
+qchisq(0.95, df=3)
+```
+
+As a result, 1.8408 < 7.814728 and we fail to reject the null hypothesis that the three variables are jointly insignificant.
+
+This implies that the three variables are jointly insignificant.
+
+As for the interpretation of the above result, we can say that adding those three variables to the model, does not add any new information regarding the result of a game. As a consequence, we should not use those variables to our model. The truth is, that we also cannot claim that the $spread$ incorporates all observable information prior to a game, since in order to do that, we have to check the joint significance between all the other variables.
+
+## Question 2
+>
+For this exercise, we use jtrain.RData to determine the effect of the job training grant on hours of job training per employee. The basic model for the three years is
+\begin{eqnarray*}
+hrsemp_{it} & = & \beta_0+\delta_1 d88_t+\delta_2d89_t+\beta_1 grant_{it} \\
+&& +\beta_2 grant_{i,t-1}+\beta_3\log(employ_{it})+a_i+u_{it}
+\end{eqnarray*}
+>
+1. Estimate the equation using fixed effects estimation (i.e., model = "within"). How many firms are used in the estimation? How many total observations would be used if each firm had data on all variables (in particular, $hrsemp$) for all three time periods?
+
+We first load the dataset.
+```{r, results = 'asis'}
+load("jtrain.RData")
+desc
+```
+
+We rename the data frame with a more informative name.
+```{r}
+jtrain.data <- data
+```
+
+We estimate the following regression model.
+```{r}
+hrsemp.fe <- plm(hrsemp ~ d88 + d89 + grant + grant_1 + lemploy, jtrain.data, index = c("fcode", "year"), effect = "individual", model = "within")
+summary(hrsemp.fe)
+```
+
+```{r, results='asis'}
+stargazer(hrsemp.fe, type = "html")
+```
+
+<br>
+
+As a result, we have $135 \: firms$ used in the estimation.
+
+As for how many total observations would be used if each firm had data on all variables (in particular, hrsemp) for all three time periods, we know that $pdim()$ function returns the overall structure of a panel data set, including # of cross-sectional units, # of periods for each cross-sectional unit, and total number of observations.
+
+Hence, we have the following:
+
+```{r}
+pdim(jtrain.data)
+```
+
+As a result, $157*3=471 \: observations$ would be used if each firm had data on all variables for all three time periods.
+
+>
+2. Interpret the coefficient on $grant_{it}$ and comment on its significance.
+
+From the above results we can see that the coefficient on $grant_{it}$ is equal to $34.22818$.
+
+In other words, a unit increase in job training grants (receive a grant at the current year), will increase the hours of job training per employee by $34.22818$.
+
+The above effect is large, however we can also see that variable $grant$ is clearly insignificant since P-value = <2e-16, which is greater than the critical value of all common significance levels.
+
+>
+3. Is it surprising that $grant_{i,t-1}$ is insignificant? Explain.
+
+From the above results we can see that P-value for $grant_{i,t-1}$ is approximately equal to 0.9029, which is again greater than the critical value of all common significance levels.
+
+Hence, $grant_{i,t-1}$ is insignificant.
+
+We know that $grant_{i,t-1}$ equals lagged grant or the last year grant that was used to pay for training last year. As a consequence, it is not surprising that the last year grant does not have an impact on this year grant, since there are two different years. 
+
+>
+4. Do larger firms train their employees more or less, on average? How big are the differences in training?
+
+First of all from the above results, we can see that the coefficient $\beta_3$ of $log(employ_{i_t})$ is equal to -0.17627.
+
+We know from the summary of functional forms involving logarithms table, that $\Delta$y=$(\beta_1/100)\%\Delta$x
+
+Hence in our case, $\Delta$$hrsemp$=$(\beta_1/100)\%\Delta$$employ$
+
+As a result, a 10$\%$ increase in the number of employees results in a 0.17627 decrease in the number of job training hours per employee. This is pretty expected, since if the firm has many employees, there is less time for each one of them for training.
+
+Moreover, the approximate 0.17 impact of the number of employees to training is very small and has a t-statistic of approximately equal to zero.
+
+Hence, larger firms train their employees slightly less on average.
