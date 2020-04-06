@@ -1,0 +1,192 @@
+---
+title: "Problem Set 3"
+author: "Konstantinos Paganopoulos"
+date: "18 November 2019"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+subtitle: Statistics and Econometrics
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE)
+library(ggplot2)
+library(car)
+library(dplyr)
+library(stargazer)
+```
+
+## Question 1
+>
+Suppose you collect data from a survey on wages, education, experience, and gender. In addition, you ask for information about marijuana usage. The original question is: "On how many separate occasions last month did you smoke marijuana?"
+>
+1. Write an equation that would allow you to estimate the effects of marijuana usage on wage, while controlling for other factors. You should be able to make statements such as, "Smoking marijuana five more times per month is estimated to change wage by x\%."
+
+The equation that would allow us to estimate the effects of marijuana usage on wage while controlling for other factors is the following log-linear model:
+
+$$log(wage)=\beta_0+\beta_1 marijuana + \beta_2educ +\beta_3exper +\delta_1gender+u,$$
+
+From the above equation we can make the statement that smoking marijuana 1 time per month more is estimated to change wage by $100\beta_1\%$.
+
+As a result, smoking marijuana five more times per month is estimated to change wage by $500\beta_1\%$.
+
+>
+2. Write a model that would allow you to test whether drug usage has different effects on wages for men and women. How would you test that there are no differences in the effects of drug usage for men and women?
+
+In order to asnwer to that question we have to write a model that tests whether drug usage (here marijuana) has different effects on wages for the two genders. We have to add an intersection variable, between the quantitatve variable marijuana and the dummy variable gender. As a result the new equation will be the following:
+
+$$log(wage)=\beta_0+\beta_1 marijuana + \beta_2educ +\beta_3exper +\delta_1gender +\delta_2gender*marijuana+u,$$
+
+As for how would we test that there are no differences in the effects of drug (marijuana) usage for men and women, we can use a t-test with the following hypothesis:
+
+$$H_0: \delta_2 = 0$$ 
+$$H_1: \delta_2 \neq 0$$
+As a result in order to determine if there are no differences in the effects of drug (marijuana) usage for men and women we should test the above $H_0$ against the above $H_1$ hypothesis.
+
+We would have to find the t-test value and compare it with the critical value for $(1-a/2)$ percentile in the t-distribution. If $|t|$ $\geq$ $critical value$ then we would reject the null hypothesis.
+
+>
+3. Suppose you think it is better to measure marijuana usage by putting people into one of four categories: nonuser, light user (1 to 5 times per month), moderate user (6 to 10 times per month), and heavy user (more than 10 times per month). Now, write a model that allows you to estimate the effects of marijuana usage on wage.
+
+If you assume that there is no interaction effect between marijuana usage and gender (no need for $gender*marijuana$ variable as in Question 1.2), the model would be the following:
+
+$$log(wage)=\beta_0+ \beta_2educ +\beta_3exper +\delta_1gender+\delta_2light +\delta_3moderate +\delta_4heavy + u,$$
+<br>
+
+>
+4. Using the model in part 3, explain in detail how to test the null hypothesis that marijuana usage has no effect on wage.
+
+Again we are going to solve this question theoretically without using "bwght2.RData" file.
+
+In order to test the null hypothesis that marijuana usage has no effect on wage based on the model of Question 1.3, we first have to state the null and the alternative hypothesis. The two hypothesis are the following:
+
+$$H_0: \delta_2,\delta_3,\delta_4= 0$$ 
+$$H_1: \delta_2,\delta_3,\delta_4 \neq 0$$ 
+As a consequence of $H_0$ for question 1.4 we have the following model:
+
+$$log(wage)=\beta_0+ \beta_2educ +\beta_3exper +\delta_1gender+ u,$$
+We can then calculate the F-statistic where the restricted model is the model in Question 1.4 and the unrestricted the one in Question 1.3 by calculating $(SSR_r - SSR_u)/q$ and dividing it by $SSR_u/(n-k-1)$.
+
+We also have that q = number of restrictions = 3 (educ, exper, gender), n = sample size and k = number of variables in the unrestricted model = 6 (educ, exper, gender, light, moderate, heavy).
+
+If $F-statistic$ $\geq$ $critical value$ then we would reject the null hypothesis.
+
+>
+5. What are some potential problems with drawing causal inference using the survey data that you collected?
+
+First of all, the sample that we use may not be quantitatively and qualitatively representative. For the sample not being quantitatively representative a reason might be to take a very small sample. For the sample not being qualitatively representative a reason might be to conduct it in a specific area, period of time or even asking specific type of people having the same age or the more or less equal occupational status (thus resulting in a biased and not random sample). 
+
+Secondly, individuals may deliberately report lower or even no values of marijuana usage, in fear of social discrimination or legal penalties.
+
+Lastly, the presence of data that contain factors affecting wage and having a correlation with the usage of marijuana can also be a problem when drawing causal inference. We are interested only in the effect of marijuana usage on somebody's wage.
+
+
+## Question 2
+Use the data in bwght2.RData for this exercise.
+
+>
+1. Estimate the equation $$\log(bwght)=\beta_0+\beta_1 npvis+\beta_2 npvis^2 + u$$ by OLS, and report the results. Is the quadratic term significant?
+
+We first load the dataset.
+```{r, results = 'asis'}
+load("bwght2.RData")
+ls()
+desc
+```
+We rename the data frame with a more informative name.
+```{r}
+bwght2.data <- data
+```
+We estimte the equation with the following log-linear model.
+```{r}
+bwght.m1 <- lm(log(bwght) ~ npvis + npvissq , data = bwght2.data)
+summary(bwght.m1)
+```
+```{r, results='asis'}
+stargazer(bwght.m1, type = "html")
+```
+<br>
+
+As a result, the estimated equation is: 
+$$\widehat{\log(bwght)}=\underset{(.027)}{7.958}+\underset{(.0037)}{0.189} npvis-\underset{(.00012)}{0.043}npvis^2,$$ where $n=1,764$ and $R^2=.213$.
+
+Hence, the quadratic term is very significant as $|t_q|$ $\geq$ 3.5
+
+>
+2. Show that, based on the equation from part 1, the number of prenatal visits that maximizes $\log(bwght)$ is estimated to be about $22$. How many women had at least $22$ prenatal visits in the sample?
+
+In order to find the number of prenatal visits that maximizes $\log(bwght)$ we have to solve the below equation to $npvis$:
+
+$$(\widehat{\log(bwght)})'=0$$
+
+Or solve for $npvis$:
+
+$$(\underset{(.027)}{7.958}+\underset{(.0037)}{0.189} npvis-\underset{(.00012)}{0.043}npvis^2)' = 0$$
+$⇒$ $npvis^*$ $=$ $-0.0189/2*0.043$ $=$ $-0.2197$ (21.97 prenatal visits).
+
+However, because $npvis$ is always positive (number of visits) we have that the number of prenatal visits that maximizes $\log(bwght)$ is estimated to be about $22$.
+
+As a result, $89$ women had at least $22$ prenatal visits in the sample.
+
+>
+3. Does it make sense that birth weight is actually predicted to decline after $22$ prenatal visits? Explain.
+
+We could say that it does make sense that the birth weight is actually predicted to decline after $22$ prenatal visits. From the model in Question 2.1 we see that prenatal visits have a positive influence $(0.0189167)$ for helping prevent low birth weights. However, when a woman has two many prenatal visits the pregnancy might confront with difficulties. For example, the multiple visits may be tiring for the pregnant woman or even have a negative impact on the precnancy due to bad habits of the visitors (e.g passive smoking).
+
+>
+4. Add mother's age to the equation, using a quadratic functional form. Holding $npvis$ fixed, at what mother's age is the birth weight of the child maximized? What fraction of women in the sample are older than the "optimal" age?
+
+We add mother's age square variable to the equation of the model.
+```{r}
+bwght.m2 <- lm(log(bwght) ~ npvis + npvissq + mage + magesq, data = bwght2.data)
+summary(bwght.m2)
+```
+
+We have the following results:
+```{r, results='asis'}
+stargazer(bwght.m2, type = "html")
+```
+
+<br>
+
+From the above model we can write the following equation:
+
+$$\widehat{\log(bwght)}=(\underset{(0.137)}{7.584}+\underset{(0.0037)}{0.018}npvis-\underset{(0.0001)}{0.0004}npvis^2 + \underset{(0.0093)}{0.0254}mage-\underset{(0.0002)}{0.0004}mage^2),$$ where $n=1,763$ and $R^2=.217$.
+
+In order to find the mother’s age that maximizes $\log(bwght)$ we have to solve the below equation to $mage$ holding $npvis$ fixed:
+
+$$(\widehat{\log(bwght)})'=0$$
+Or solve for $mage$:
+$$(\underset{(0.137)}{7.584}+\underset{(0.0037)}{0.018}npvis-\underset{(0.0001)}{0.0004}npvis^2 + \underset{(0.0093)}{0.0254}mage-\underset{(0.0002)}{0.0004}mage^2)'=0$$
+
+$⇒$ $mage^*$ $=$ $0.00254/0.0004*2$ $⇒$ $mage^*=0.3175$ (31.75 years old).
+
+As a result, at ≈ 32 years old of mother age is the birth weight of the child maximized.
+
+In order to find the fraction of women in the sample, who are older than the “optimal” age we can plot the histogram for $mage$ and count the incidents where $mage$ $>$ $32$ years old.
+
+```{r}
+ggplot(data = bwght2.data, aes(x = mage)) + geom_histogram()
+```
+
+From the histogram we can see that approximately $35\%$ $=$ $35/100$ of the women are older than 32 years old.
+
+However, we can count the exact fraction of women in the sample that are older than the "optimal" age by the following commands:
+
+```{r}
+greater_than_optimal <- length(which(bwght2.data$mage>=32))
+fraction <- greater_than_optimal/count(bwght2.data)
+fraction
+```
+
+First we calculate how many women in the sample have an age older than the "optimal" one and then we divide that number by the total number of sample observations.
+
+As a result we see that the fraction of women in the sample, who are older than the "optimal" age, is $0.3302402$ or approximately $33\%$.
+
+>
+5. Would you say that mother's age and number of prenatal visits explain a lot of the variation in $\log(bwght)$? 
+
+We know that R-squared $(R^2)$ is a statistical measure that represents the proportion of the variance for a dependent variable that's explained by an independent variable or variables in a regression model. 
+
+From the model in Question 2.4 we see that $R^2$ $= 0.02562$ for $log(bwght)$. This is a very small number and since $R^2$ shows the variation for $log(bwght)$ we can say that mother’s age and number of prenatal visits do not explain a lot of the variation in $log(bwght)$.
