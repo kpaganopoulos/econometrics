@@ -1,0 +1,168 @@
+---
+title: "Problem Set 2"
+author: "Konstantinos Paganopoulos"
+date: "11 November 2019"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+subtitle: Statistics and Econometrics
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE)
+library(stargazer)
+library(car)
+```
+
+## Question 1
+>
+Using the data set ceosal1.RData to answer the following questions. Consider an equation to explain salaries of CEOs in terms of annual firm sales, return on equity ($roe$, in percentage form), and return on the firm's stock ($ros$, in percentage form): $$\log(salary)=\beta_0+\beta_1\log(sales)+\beta_2 roe+\beta_3 ros+u$$
+>
+1. In terms of the model parameters, state the null hypothesis that, after controlling for $sales$ and $roe$, $ros$ has no effect on CEO salary. State the alternative that better stock market performance increases a CEO's salary.
+
+First we load the dataset
+```{r}
+load("ceosal1.RData")
+```
+We rename the data frame with a more informative name
+```{r}
+ceosal.data <- data
+```
+
+In the model, our null hypothesis that $roe$ has no effect on CEO salary and oure one-sided alternative are the following:
+$$H_0: \beta_3 = 0$$ 
+$$H_1: \beta_3 > 0$$
+
+We used '> 0' for alternative hypothesis because we want that better stock market performance increases a CEO's salary.
+
+>
+2. Estimate the model and report your results. By what percentage is $salary$ predicted to increase if $ros$ increases by 50 basis points (i.e., $ros$ increases by 50)? Does $ros$ have a practically large effect on $salary$?
+
+```{r}
+salary.m1 <- lm(log(salary) ~ log(sales) + roe + ros, data = ceosal.data)
+summary(salary.m1)
+```
+```{r, results='asis'}
+stargazer(salary.m1, header = FALSE, type = 'latex', no.space = TRUE, title = "Question 1.2")
+```
+
+The estimated equation is: 
+$$\widehat{\log(salary)}=\underset{(.32)}{4.32}+\underset{(.035)}{0.280} log(sales)+\underset{(.0041)}{0.0174}roe+\underset{(.00054)}{0.00024}ros,$$ where $n=209$, $R^2=.283$.
+
+To answer by what percentage is salary predicted to increase if
+"ros" increases by 50 basis points (i.e., ros increases by 50) we have to check the coefficient of "ros". The coefficient of "ros" is 0.00024. As a result, the effect of "ros" increasing by 50 on salary would be 0.00024·50 = 0.012. Hence the precentage increase is 1.2%. Therefore, a 50 basis point increase in ros is predicted to increase salary by only 1.2%. This is a very small effect for such a large change in "ros". This effect is statistically and economically unsignificant.
+
+>
+3. Test the null hypothesis that $ros$ has no effect on $salary$ against the alternative that $ros$ has a positive effect. Carry out the test at the 10% significance level (please show clearly the test statistic and the critical value used in your testing).
+
+We know that t statistic equals $\beta_3$/$se(\beta_3)$. If we use the data from the model defined in Question 1.2 with the null hypothesis defined in Question 1.1 we have, t = $0.0002417 / 0.0005418$ which is approximately equal to 0.44
+
+We now have to find the critical value for 90th percentile from a t distribution with infinite degree of freedom (since n is very large).
+
+```{r}
+qt(0.9, df = Inf)
+```
+
+At the 10% significance level, the one-sided t-test critical value is approximately equal to 1.28
+
+As a result we fail to reject the null hypothesis $H_0$ that ros has no effect on salary, because critical value = (0.44) < t-statistic = (1.28)
+
+>
+4. Would you include $ros$ in a final model explaining CEO compensation in terms of firm performance? Explain.
+
+According to Question 1.3 we found that $ros$ does have an effect on the salary. However, the t-statistic value was very far from the critical one, making it very unlikely for $ros$ to have a significant effect on the salary. For that reason, we may want to avoid including $ros$ to our model because it has an unsignificant $\beta_3$ and adding such a variable may lead to a biased and not reliable model. Besides biasedness, an extra variable of that kind (even been unbiased) will probably also increase variance. As a result, is does not make much difference if we omit $ros$ or not.
+
+
+## Question 2
+>
+Use the data set lawsch85.RData to answer the following questions. Consider an equation to explain the median starting salary for new law school graduates $$\log(salary) = \beta_0 + \beta_1 LSAT + \beta_2 GPA + \beta_3 \log(libvol)+\beta_4\log(cost)+\beta_5 rank +u,$$ where $LSAT$ is the median LSAT score for the graduating class, $GPA$ is the median college GPA for the class, $libvol$ is the number of volumes in the law school library, $cost$ is the annual cost of attending law school, and $rank$ is a law school ranking (with $rank=1$ being the best).
+>
+1.  Estimate the model. State and test the null hypothesis that the rank of law schools has no causal effect on median starting salary (please show clearly the test statistic and the critical value used in your testing).
+
+First we load the dataset.
+```{r}
+load("lawsch85.RData")
+```
+We rename the data frame with a more informative name.
+```{r}
+lawsch85.data <- data
+```
+Then we estimate the model.
+```{r}
+salary.m2 <- lm(log(salary) ~ LSAT + GPA + log(libvol) + log(cost) + rank, data = lawsch85.data)
+summary(salary.m2)
+```
+```{r, results='asis'}
+stargazer(salary.m2, header = FALSE, type = 'latex', no.space = TRUE, float = FALSE)
+```
+
+In the model, our null hypothesis that rank of law schools has no causal effect on median starting salary and its alternative are the following:
+$$H_0: \beta_5 = 0$$ 
+$$H_1: \beta_5 \neq 0$$
+Hence we have a two-sided test.
+
+We know that t statistic equals $\beta_5$/$se(\beta_5)$. If we use the data from the model defined in Question 2.1 with the null hypothesis defined in Question 2.1 we have, t = $-0.0033246 / 0.0003485$ which is approximately equal to -9.53.
+
+We now have to find the critical value for 99th percentile (for a two sided test) from a t distribution with degree of freedom = 130.
+
+We begin from the smallest significance level (among the common significance levels, such as 1%, 5%, 10%) and check if the null hypothesis would be rejected.
+
+```{r}
+qt(0.99, df = 130)
+```
+
+At the 1% significance level, the one-sided t-test critical value is approximately equal to 2.36
+
+As a result we reject the null hypothesis $H_0$ that that the rank of law schools has no causal effect on median starting salary, because $|critical value|$ = $abs(-9.53)$ = (9.53) > t-statistic = (2.36)
+
+It is worth to mention that we would again reject the null for a = 5% or 10%.
+
+>
+2. Are features of students - namely, $LSAT$ and $GPA$ - individually or jointly significant for explaining $salary$?
+
+From the results of the model in Question 2.1 we can see that LSAT is not individually statistically  significant (P-value = 0.24372 > 0.01 = a), whereas GPA is individually significant (P-value = 0.00683 < 0.01 = a) at significance level of a = 1%.
+
+It is worth to mention that we would have equal results if we had chosen a significance level of a = 5% or a = 10%.
+
+As for the smallest significance level in which we reject the null hypothesis that both of LSAT and GPA are not individually significant, we see that whereas for GPA the null hypothesis is rejected for significance levels of 1% and larger (we have to take a very very small significance level for example 0.1% in order not to reject the null hypothesis), for LSAT the null hypothesis is only rejected if we take an extremely large significance level that tends to 1.
+
+Now, we are going to examine if $LSAT$ and $GPA$ are jointly significant for explaining $salary$.
+
+We run the following hypothesis:
+```{r}
+linearHypothesis(salary.m2, c("LSAT = 0", "GPA = 0"))
+```
+
+As a result LSAT and GPA are jointly very significant since F is approximately equal to 9.95.
+
+
+>
+3. Test whether the size of the class ($clsize$) or the size of the faculty ($faculty$) needs to be added to this equation: carry out a single test for joint significance of the two variables.
+
+
+In order to test whether the size of the class ($clsize$) or the size of the faculty ($faculty$) needs to be added to this equation, we first run a new model which includes the variables class ($clsize$) and faculty ($faculty$) and we report the results.
+
+
+
+```{r}
+salary.m3 <- lm(log(salary) ~ LSAT + GPA + log(libvol) + log(cost) 
++ rank + clsize + faculty, data = lawsch85.data)
+summary(salary.m3)
+```
+
+
+```{r, results='asis'}
+stargazer(salary.m3, header = FALSE, type = 'latex', 
+no.space = TRUE, float = FALSE)
+```
+
+\vspace{12pt}
+
+We run the following hypothesis:
+```{r}
+linearHypothesis(salary.m3, c("clsize = 0", "faculty = 0"))
+```
+
+When we run the F-test for the joint significance of the two variables we get F-statistic that is approximately equal to 0.95 and a P-Value of 0.3902 at the default $.05$ significance level (or even at the smallest possible significance level of $.01$). As a consequence, clsize and faculty are not jointly significant. In order to change that we could use a very large significance level.
+
