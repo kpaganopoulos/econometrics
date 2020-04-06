@@ -1,0 +1,169 @@
+---
+title: "Problem Set 1"
+output:
+  html_document:
+    df_print: paged
+  pdf_document: default
+author: 'Konstantinos Paganopoulos'
+subtitle: Statistics and Econometrics
+---
+
+## Question 1
+>
+The data set ceosal2.RData contains information on chief executive officers for U.S. corporations. Two variables of interest are the annual compensation ($salary$) and the prior number of years as company CEO ($ceoten$).
+>
+1. Find the average salary and the average tenure in the sample.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(message = FALSE) #suppress the message
+library(ggplot2)
+```
+
+```{r}
+load("ceosal2.RData")
+ls() # show data sets and functions defined
+desc
+```
+We rename the data frame with a more informative name
+```{r}
+ceosal.data <- data
+```
+As the first step for any data analysis, we will need to get familiar with the data set by investigating summary statistics, univariate plot, and pairwise plot. 
+```{r}
+summary(ceosal.data[, 1:15])
+```
+We focus on the two variables of interest, $salary$ and $ceoten$.
+```{r}
+summary(ceosal.data[, 1:1])
+```
+Hence the average $salary$ is 865.9
+```{r}
+summary(ceosal.data[, 6:6])
+```
+Hence the average $ceoten$ (tenure) 7.955
+
+>
+2. How many CEOs are in their first year as CEO (that is, $ceoten=0$)? What is the longest tenure as a CEO?
+
+```{r}
+ggplot(data = ceosal.data, aes(x = ceoten)) + geom_histogram()
+```
+
+From the histogram we see that 5 CEOs are in their first year as CEO and the longest tenure is 37 years.
+
+>
+3. What is the average salary for CEOs with tenure longer than or equal to the average tenure? What is the average salary for CEOs with tenure shorter than the average tenure?
+
+```{r}
+library(dplyr)
+ceosal2 <- ceosal.data %>%
+            select(salary, ceoten) %>% 
+            filter(ceoten >= mean(ceosal.data$ceoten))
+sal_avg.above <- mean(ceosal2$salary)
+
+cat("Average salary of CEOs with tenure longer than or equal to average is $", round(sal_avg.above *1000))
+```
+```{r}
+ceosal2 <- ceosal.data %>%
+            select(salary, ceoten) %>% 
+            filter(ceoten < mean(ceosal.data$ceoten))
+sal_avg.below <- mean(ceosal2$salary)
+
+cat("Average salary of CEOs with tenure shorter than average is $", round(sal_avg.below *1000))
+```
+
+>
+4. Create a graph to examine the relationship between $salary$ and $ceoten$ for all CEOs. Comment.
+
+```{r}
+ggplot(data = ceosal.data, aes(x = ceoten, y = salary)) + geom_point()
+```
+
+We investigate the scatterplot of $salary$ vs $ceoten$. It shows that for approximately the first 10 years $salary$ increases as $ceoten$ increases. Moreover, we have few observations with more than 20 years of experience as CEOs, which will impact the accuracy of prediction for higher levels of ceo tenure; It is also worth mentioning that the variation in $salary$ does not generally increases in $ceoten$ so we don't have heteroskedasticity. The salary appears to be uniformly distributed across the tenure of the CEOs, i.e. the length of the tenure of the CEOs does not significantly affect the salary of the CEOs. There are also a number of CEOs who have 2-year tenure earning as much salary as those who have 15-year tenure. Lastly, it can be seen that the salary range largely falls between 0 to 2,000,000 for the sample. There is a cluster of data with CEO’s tenure between 0 to 10 years. 
+
+>
+5. Estimate the simple regression model $$\log(salary)=\beta_0+\beta_1 ceoten+u,$$ and report your results. What is the (approximate) predicted percentage increase in salary given one more year as a CEO?
+
+```{r}
+log.m1 <- lm(lsalary ~ ceoten, data = ceosal.data)
+summary(log.m1)
+```
+```{r, results='asis'}
+library(stargazer)
+stargazer(log.m1, type = "html")
+```
+
+<br>
+According to the log model: $$\log(salary)=-6.505+0.0097ceoten$$ 
+$$where$$ $$n = 177, R^2 = 0.01316$$
+
+From the above results we can see that the approcimate predicted precentage increase in salary given one more year as CEO is 0.009724 hence 0.97%
+<br>
+
+## Question 2
+>
+The data set bwght.RData contains data on births to women in the United States. Two variables of interest are the infant birth weight in ounces ($bwght$), and the average number of cigarettes the mother smoked per day during pregnancy ($cigs$).
+>
+1. Estimate the simple regression model $$bwght=\beta_0+\beta_1 cigs+u,$$ and report your results.
+
+```{r}
+load("bwght.RData") #load data set
+```
+We rename the data frame with a more informative name
+```{r}
+bwght.data <- data
+```
+We estimate the simple regression model $$bwght=\beta_0+\beta_1 cigs+u,$$ and report the results
+```{r}
+linear.m1 <- lm(bwght ~ cigs, data = bwght.data)
+summary(linear.m1)
+```
+
+```{r, results='asis'}
+library(stargazer)
+linear.m1 <- lm(bwght ~ cigs, data = bwght.data)
+stargazer(linear.m1, type = 'html')
+```
+
+<br>
+According to the  model: $$bwght=119.77-0.5138 cigs$$ 
+$$where$$ $$n = 1388, R^2 = 0.0227$$
+
+Therefore with one more cigarette smoked per day during pregnancy, the birthweight is expected to decrease by around 0.5138 ounces.
+
+>
+2. What is the predicted birth weight when $cigs = 0$? What about when $cigs = 20$ (one pack per day)? Comment on the difference.
+
+```{r}
+predict(linear.m1, data.frame(cigs = c(0,20)))
+```
+
+The predicted birth weight when $cigs = 0$ is 119.77, whereas when $cigs = 20$ is 109.50, which is about an 8.6% drop.
+
+The results are unsurprising, since for no cigaretters per day the infant birth weight in ounces is approximately 119.77 whereas for 20 ciagarettes per day (one pack per day) is significantly lower approximately at 109.50
+
+Obviously, mothers who smoke cigarettes during pregnancy have, on average, lower birthweight children.
+
+>
+3. Does this simple regression necessarily capture a causal relationship between the child's birth weight and the mother's smoking habits? Explain.
+
+Not  necessarily. In this case, smoking precedes the birth of the child and therefore the incidence of smoking can be considered to be causal. However, there are probably many other factors that affect the birthweight of child such as income of the mother, overall health and nutrition of the mother (caffeine consumption), and environmental conditions (smog, pollution). 
+
+>
+4. To predict a birth weight of $125$ ounces, what would $cigs$ have to be? Comment.
+
+We saw in Question 2 part 2 that the predicted birth weight when $cigs = 0$ is 119.77
+
+In other words, that birth weight is our best solution, since it is achieved with the consumption of 0 cigarettes by the mother.
+
+As a result a birth weight of 125 ounces is clearly impossible. After all, the above regression equation implies that the “best” average birthrate for non-smokers is 119.77 ounces.
+
+>
+5. The proportion of women in the sample who do not smoke while pregnant is about $85\%$. Does this reconcile your finding from part 4?
+
+
+We know that it would be better, in terms of sample design, to have more smokers in the sample because this would add to the variation in the independent variable (cigs) and we might get a more accurate estimate of the intercept which gives us the average birthweight of children of non-smoking mothers. It is possible that the intercept estimate might take on a more accurate estimate in this case and indicate the greater likelihood of having larger babies. 
+
+In other words, 85% of women  did  not  smoke  while  pregnant. Because  we  are  using  only  cigs  to  explain  birth  weight,  we  have only  one predicted  birth  weight  at  cigs  =  0. The  predicted  birth  weight  is  necessarily roughly in the middle of the observed birth weights at cigs = 0, and so we will under predict high birth rates such as that of 125 ounces in part 4.
+
+
