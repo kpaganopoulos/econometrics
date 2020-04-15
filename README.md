@@ -2,6 +2,7 @@ Problem Set 1
 Statistics and Econometrics
 Due: 12pm, 4 November 2019
 General Guideline
+
 $ % What we are looking for in the assignments is a demonstration that you can understand the econometrics
 and statistics questions and can use R to solve them. That means effective programming to get correct results
 is needed, but at the same time, clear explanations of economics/business concepts in well presented reports
@@ -11,6 +12,7 @@ and explanations of results.
 Only two forms of reports will be accepted, either pdf or html. We strongly suggest you to submit the pdf
 or html converted from R markdown/notebook after you program in R. Please submit both the source code
 and pdf/html file.
+
 Question 1
 The data set ceosal2.RData contains information on chief executive officers for U.S. corporations. Two
 variables of interest are the annual compensation (salary) and the prior number of years as company CEO
@@ -25,6 +27,7 @@ the average salary for CEOs with tenure shorter than the average tenure?
 log(salary) = 0 + 1ceoten + u,
 and report your results. What is the (approximate) predicted percentage increase in salary given one
 more year as a CEO?
+
 Question 2
 The data set bwght.RData contains data on births to women in the United States. Two variables of interest
 are the infant birth weight in ounces (bwght), and the average number of cigarettes the mother smoked per
@@ -44,6 +47,7 @@ Problem Set 2
 Statistics and Econometrics
 Due: 12pm, 11 November 2019
 General Guideline
+
 What we are looking for in the assignments is a demonstration that you can understand the econometrics and
 statistics questions and can use R to solve them. That means effective programming to get correct results is
 needed, but at the same time, clear explanations of economics/business concepts in well presented reports
@@ -53,6 +57,7 @@ explanations of results.
 Only two forms of reports will be accepted, either pdf or html. We strongly suggest you to submit the pdf or
 html converted from R markdown/notebook after you program in R. Please submit both the source code and
 pdf/html file.
+
 Question 1
 Using the data set ceosal1.RData to answer the following questions. Consider an equation to explain salaries
 of CEOs in terms of annual firm sales, return on equity (roe, in percentage form), and return on the firm’s
@@ -69,6 +74,7 @@ effect. Carry out the test at the 10% significance level (please show clearly th
 critical value used in your testing).
 4. Would you include ros in a final model explaining CEO compensation in terms of firm performance?
 Explain.
+
 Question 2
 Use the data set lawsch85.RData to answer the following questions. Consider an equation to explain the
 median starting salary for new law school graduates
@@ -88,6 +94,7 @@ Problem Set 3
 Statistics and Econometrics
 Due: 12pm, 18 November 2019
 General Guideline
+
 What we are looking for in the assignments is a demonstration that you can understand the econometrics and
 statistics questions and can use R to solve them. That means effective programming to get correct results is
 needed, but at the same time, clear explanations of economics/business concepts in well presented reports
@@ -97,6 +104,7 @@ explanations of results.
 Only two forms of reports will be accepted, either pdf or html. We strongly suggest you to submit the pdf or
 html converted from R markdown/notebook after you program in R. Please submit both the source code and
 pdf/html file.
+
 Question 1
 Suppose you collect data from a survey on wages, education, experience, and gender. In addition, you ask for
 information about marijuana usage. The original question is: “On how many separate occasions last month
@@ -115,6 +123,7 @@ marijuana usage on wage.
 no effect on wage.
 5. What are some potential problems with drawing causal inference using the survey data that you
 collected?
+
 Question 2
 Use the data in bwght2.RData for this exercise.
 1. Estimate the quation
@@ -123,7 +132,6 @@ by OLS, and report the results. Is the quadratic term significant?
 2. Show that, based on the equation from part 1, the number of prenatal visits that maximizes log(bwght)
 is estimated to be about 22. How many women had at least 22 prenatal visits in the sample?
 3. Does it make sense that birth weight is actually predicted to decline after 22 prenatal visits? Explain.
-
 4. Add mother’s age to the equation, using a quadratic functional form. Holding npvis fixed, at what
 mother’s age is the birth weight of the child maximized? What fraction of women in the sample are
 older than the “optimal” age?
@@ -134,6 +142,7 @@ Problem Set 4
 Statistics and Econometrics
 Due: 12pm, 25 November 2019
 General Guideline
+
 What we are looking for in the assignments is a demonstration that you can understand the econometrics and
 statistics questions and can use R to solve them. That means effective programming to get correct results is
 needed, but at the same time, clear explanations of economics/business concepts in well presented reports
@@ -143,6 +152,7 @@ explanations of results.
 Only two forms of reports will be accepted, either pdf or html. We strongly suggest you to submit the pdf or
 html converted from R markdown/notebook after you program in R. Please submit both the source code and
 pdf/html file.
+
 Question 1
 Use the data set nbasal.RData to answer this question. A regression model is needed to study the factors
 that influence salaries of NBA players. We use log(wage) as the dependent variable. Potential factors
@@ -154,6 +164,7 @@ in the level form.
 2. Find the model(s) with the lowest AIC by using forward and backward-stepwise selections.
 3. Plot residuals against fitted values of model(s) from part 2. Is the residual plot satisfactory? Comment.
 4. Repeat part 2 without avgmin. Comment on the differences.
+
 Question 2
 Use the data set meap93.RData to answer this question. Let math10 denote the percentage of students at a
 Michigan high school receiving a passing score on a standardized math test. We are interested in estimating
@@ -172,6 +183,7 @@ Problem Set 5
 Statistics and Econometrics
 Due: 12pm, 2 December 2019
 General Guideline
+
 What we are looking for in the assignments is a demonstration that you can understand the econometrics and
 statistics questions and can use R to solve them. That means effective programming to get correct results is
 needed, but at the same time, clear explanations of economics/business concepts in well presented reports
@@ -181,6 +193,7 @@ explanations of results.
 Only two forms of reports will be accepted, either pdf or html. We strongly suggest you to submit the pdf or
 html converted from R markdown/notebook after you program in R. Please submit both the source code and
 pdf/html file.
+
 Question 1
 Use the data in pntsprd.RData for this exercise.
 1. The variable favwin is a binary variable indicating whether the team favored by the Las Vegas point
@@ -199,6 +212,7 @@ Compare this with the LPM estimate from part 2.
 variables using the likelihood ratio test. (How many df are in the chi-square distribution?) Interpret
 this result, focusing on the question of whether the spread incorporates all observable information prior
 to a game.
+
 Question 2
 For this exercise, we use jtrain.RData to determine the effect of the job training grant on hours of job training
 per employee. The basic model for the three years is
